@@ -1,4 +1,4 @@
 my_env/
+config/
+images/
 __pycache__/
-bot_config.py
-db_config.py
