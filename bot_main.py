@@ -1,6 +1,7 @@
 from aiogram import Bot, Dispatcher, executor, types
 
 import config.bot_config as bot_config
+from lores_image import ImagesHandler
 import resources.markups as markups
 import resources.texts as texts
 import database as db
@@ -73,9 +74,13 @@ async def photo_handler(message: types.Message):
         photo_path = f"images/photo{user_id}.jpg"
         photo = message.photo[-1]
         await bot.download_file_by_id(photo.file_id, photo_path)
-        db.db_add_photo(photo_path, user_id)
+        ph = ImagesHandler(path_image_directory=photo_path, BASEWIDTH=500)
+        ph.process_images()
+        new_photo_path = f"images/new/photo{user_id}.jpg"
+        db.db_add_photo(new_photo_path, user_id)
         db.db_set_state("status", user_id)
         os.remove(photo_path)
+        os.remove(new_photo_path)
         data = db.db_get_names(user_id)
         await bot.send_message(user_id, 
                                 f"Спасибо, {data[0]} {data[1]}. Ваше фото добавлено.",
