@@ -15,6 +15,7 @@ def db_create_table():
                                 "   `photo` blob,"
                                 "   `state` varchar(60) DEFAULT 'start',"
                                 "   `auth` varchar(60) DEFAULT 'no',"
+                                "   `time` float FLOAT NOT NULL DEFAULT '0',"
                                 "   PRIMARY KEY (`id`)"
                                 ")  ENGINE=InnoDB" )
                 connection.commit()
