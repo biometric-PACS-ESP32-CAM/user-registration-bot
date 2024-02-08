@@ -1,8 +1,9 @@
+import asyncio
 from config.db_config import config_connection
 from mysql.connector import connect, Error
 
 # Создаем таблицу для хранения данных пользователей
-def db_create_table():
+async def db_create_table():
     try:
         with connect(**config_connection) as connection:
             with connection.cursor() as cursor:
@@ -24,7 +25,7 @@ def db_create_table():
 
 
 # Добавляем id и user_id для пользователя
-def db_insert_ids(user_id):
+async def db_insert_ids(user_id):
     try:
         with connect(**config_connection) as connection:
             with connection.cursor() as cursor:
@@ -35,7 +36,7 @@ def db_insert_ids(user_id):
 
 
 # Добавляем name и surname для пользователя
-def db_set_name(name, user_id):
+async def db_set_name(name, user_id):
     try:
         with connect(**config_connection) as connection:
             with connection.cursor() as cursor:
@@ -45,7 +46,7 @@ def db_set_name(name, user_id):
     except Error as e:
         print(e)
 
-def db_set_surname(surname, user_id):
+async def db_set_surname(surname, user_id):
     try:
         with connect(**config_connection) as connection:
             with connection.cursor() as cursor:
@@ -56,7 +57,7 @@ def db_set_surname(surname, user_id):
         print(e)
 
 # Получаем name и surname для пользователя
-def db_get_names(user_id):
+async def db_get_names(user_id):
     try:
         with connect(**config_connection) as connection:
             with connection.cursor(buffered=True) as cursor:
@@ -72,8 +73,8 @@ def db_get_names(user_id):
 
 
 # Добавляем status_enter для пользователя
-def db_chng_status(user_id):
-    cur_status = db_get_status(user_id)
+async def db_chng_status(user_id):
+    cur_status = await db_get_status(user_id)
     if cur_status == 'out': 
         new_status = 'in'
     else:
@@ -88,7 +89,7 @@ def db_chng_status(user_id):
         print(e)
 
 # Получаем status_enter для пользователя
-def db_get_status(user_id):
+async def db_get_status(user_id):
     try:
         with connect(**config_connection) as connection:
             with connection.cursor(buffered=True) as cursor:
@@ -101,7 +102,7 @@ def db_get_status(user_id):
 
 
 # Добавляем state для пользователя
-def db_set_state(state, user_id):
+async def db_set_state(state, user_id):
     try:
         with connect(**config_connection) as connection:
             with connection.cursor() as cursor:
@@ -111,7 +112,7 @@ def db_set_state(state, user_id):
         print(e)
 
 # Получаем state для пользователя
-def db_get_state(user_id):
+async def db_get_state(user_id):
     try:
         with connect(**config_connection) as connection:
             with connection.cursor(buffered=True) as cursor:
@@ -123,7 +124,7 @@ def db_get_state(user_id):
         print(e)
 
 # Добавляем auth для пользователя
-def db_set_auth(auth, user_id):
+async def db_set_auth(auth, user_id):
     try:
         with connect(**config_connection) as connection:
             with connection.cursor() as cursor:
@@ -133,7 +134,7 @@ def db_set_auth(auth, user_id):
         print(e)
 
 # Получаем auth для пользователя
-def db_get_auth(user_id):
+async def db_get_auth(user_id):
     try:
         with connect(**config_connection) as connection:
             with connection.cursor(buffered=True) as cursor:
@@ -147,42 +148,42 @@ def db_get_auth(user_id):
 #========================================================================================
 
 # Добавляем photo для пользователя
-def convert_to_binary_data(path):
+async def convert_to_binary_data(path):
     with open(path, 'rb') as file:
         binaryData = file.read()
     return binaryData
 
-def db_add_photo(path, user_id):
+async def db_add_photo(path, user_id):
     try:
         with connect(**config_connection) as connection:
             with connection.cursor() as cursor:
-                blob_photo = convert_to_binary_data(path)
+                blob_photo = await convert_to_binary_data(path)
                 cursor.execute("UPDATE users SET `photo` = %s WHERE `user_id` = %s", (blob_photo, user_id,))
                 connection.commit()
     except Error as e:
         print(e)
 
 # Получаем photo пользователя
-def write_file(binaryData, path):
+async def write_file(binaryData, path):
     with open(path, 'wb') as file:
         file.write(binaryData)
 
-def db_get_photo(path, user_id):
+async def db_get_photo(path, user_id):
     try:
         with connect(**config_connection) as connection:
             with connection.cursor(buffered=True) as cursor:
                 cursor.execute("SELECT `photo` FROM users WHERE `user_id` = %s", (user_id,))
                 record = cursor.fetchone()
                 image = record[0]
-                write_file(image, path)
+                await write_file(image, path)
     except Error as e:
         print(e)
 
 #========================================================================================
 
 # Удаляем данные пользователя при остановке
-def db_delete_user_data(user_id):
-    if (db_user_exists(user_id)):
+async def db_delete_user_data(user_id):
+    if (await db_user_exists(user_id)):
         try:
             with connect(**config_connection) as connection:
                 with connection.cursor() as cursor:
@@ -190,9 +191,9 @@ def db_delete_user_data(user_id):
                     connection.commit()
         except Error as e:
             print(e)
-        db_delete_user_data(user_id)
+        await db_delete_user_data(user_id)
 
-def db_user_exists(user_id):
+async def db_user_exists(user_id):
     try:
         with connect(**config_connection) as connection:
             with connection.cursor(buffered=True) as cursor:
@@ -203,4 +204,4 @@ def db_user_exists(user_id):
         print(e)
 
 if (__name__ == '__main__'):
-    db_create_table()
+    asyncio.run(db_create_table())
