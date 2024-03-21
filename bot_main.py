@@ -17,8 +17,8 @@ async def start(message: types.Message):
     await db.db_delete_user_data(user_id)
     await db.db_insert_ids(user_id)
     await bot.send_message(user_id, f"Привет, {message.from_user.first_name}!")
-    await bot.send_message(user_id, texts.intro, reply_markup=markups.auth)
-
+    await bot.send_message(user_id, texts.intro)
+    await bot.send_message(user_id, "Чтобы продолжить, нажми на кнопку 'VERIFY'.", reply_markup=markups.auth)
 
 @dp.message_handler()
 async def bot_message(message: types.Message):
@@ -37,7 +37,7 @@ async def bot_message(message: types.Message):
         elif (message.text == bot_config.bot_password and await db.db_get_state(user_id) == "pass"):
             await db.db_set_state("person", user_id)
             await db.db_set_auth("done", user_id)
-            await bot.send_message(user_id, "Поздравляем, вы успешно верифицированы!", 
+            await bot.send_message(user_id, "Поздравляем, вы успешно верифицированы!\nЧтобы продолжить, нажми на кнопку 'Добавить ФИО'", 
                                     reply_markup=markups.person)
         elif (await db.db_get_auth(user_id) == "done"):
             if (message.text == 'Добавить ФИО'):
@@ -51,7 +51,7 @@ async def bot_message(message: types.Message):
                 await db.db_set_surname(message.text, user_id)
                 await db.db_set_state("bio", user_id)
                 data = await db.db_get_names(user_id)
-                await bot.send_message(user_id, f"Спасибо, {data[0]} {data[1]}, рады знакомству!",
+                await bot.send_message(user_id, f"Спасибо, {data[0]}, рады знакомству!\nЧтобы продолжить, нажми на кнопку 'Добавить ФОТО'",
                                         reply_markup=markups.bio)
             elif (message.text == 'Добавить ФОТО'):
                 await bot.send_message(user_id, texts.photo)
@@ -64,7 +64,7 @@ async def bot_message(message: types.Message):
             else:
                 await bot.send_message(user_id, "Не понимаю")
         else:
-            await bot.send_message(user_id, "Попробуйте снова (VERIFY):")
+            await bot.send_message(user_id, "Попробуйте снова (VERIFY)")
 
 
 @dp.message_handler(content_types=['photo'])
@@ -83,12 +83,12 @@ async def photo_handler(message: types.Message):
         os.remove(new_photo_path)
         data = await db.db_get_names(user_id)
         await bot.send_message(user_id, 
-                                f"Спасибо, {data[0]} {data[1]}. Ваше фото добавлено.",
+                                f"Спасибо, {data[0]}. Ваше фото добавлено.\n\nЧтобы отследить свое местоположение, нажми на кнопку 'Узнать статус'",
                                 reply_markup=markups.status)
     else:
         data = await db.db_get_names(user_id)
         await bot.send_message(user_id, 
-            f"{data[0]}, ваше фото уже добавлено. Чтобы поменять его, вам необходимо обратиться к начальству.")
+            f"{data[0]}, ваше фото уже добавлено. Чтобы поменять его, вам необходимо обратиться к администратору БД за помощью.")
 
 
 if (__name__ == '__main__'):
